@@ -12,11 +12,17 @@ class Tetris :
         self.BC = (255, 255, 255)
         self.CHUNK = (int(self.SIZE[0] / 20), int(self.SIZE[1] / 20))
 
-        self.SHAPE1 = (
-            (0, 0, 0, 0),
-            (1, 1, 1, 1),
-            (0, 0, 0, 0)
-        )
+        self.SHAPE1 = [
+            [1, 1, 1, 1],
+            [0, 0, 0, 0]
+        ]
+        self.SHAPE2 = [
+            [1],
+            [1],
+            [1],
+            [1],
+            [0]
+        ]
 
         self.pg = pg
         self.objects = []
@@ -38,8 +44,15 @@ class Tetris :
         self.screen = self.pg.display.set_mode(self.SIZE)
         self.clock = self.pg.time.Clock()
 
+        shape = random.choice(
+            [
+                self.SHAPE1,
+                self.SHAPE2
+            ]
+        )
+
         # set objects
-        self.objects.append(self.__initShape(self.SHAPE1))
+        self.objects.append(self.__initShape(shape))
         index_now = len(self.objects) - 1
 
         while True :
