@@ -21,7 +21,6 @@ class Objects :
                     if self.SHAPE[int((j - self.y) / self.CHUNK[1])][int((i - self.x) / self.CHUNK[0])] == 0 :
                         if tuple(self.screen.get_at((int(i + 1), int(j + 1))))[:-1] != (255, 255, 255)  :
                             self.IS_MOVE = False
-                            print(tuple(self.screen.get_at((int(i + self.CHUNK[0] / 2), int(j + self.CHUNK[1] / 2)))))
                             
                             return True
 
