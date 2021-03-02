@@ -8,35 +8,60 @@ import sys
 class Tetris :
     def __init__(self, size) :
         self.SIZE = size
-        self.FPS = 30
+        self.FPS = 10
         self.BC = (255, 255, 255)
-        self.CHUNK = (int(self.SIZE[0] / 20), int(self.SIZE[1] / 20))
+        self.CHUNK = (int(self.SIZE[0] / 10), int(self.SIZE[1] / 30))
+
+        # will be more
+        self.SHAPE1_INT, self.SHAPE1_COLOR = 1, (255, 0, 0)
+        self.SHAPE2_INT, self.SHAPE2_COLOR = 2, (0, 255, 0)
 
         self.SHAPE1 = [
-            [1, 1, 1, 1],
+            [self.SHAPE1_INT for _ in range(4)],
             [0, 0, 0, 0]
         ]
         self.SHAPE2 = [
-            [1],
-            [1],
-            [1],
-            [1],
+            [self.SHAPE2_INT],
+            [self.SHAPE2_INT],
+            [self.SHAPE2_INT],
+            [self.SHAPE2_INT],
             [0]
         ]
 
         self.pg = pg
+        self.map = [
+            [0 for _ in range(int(self.SIZE[0] / self.CHUNK[0]))] for _ in range(int(self.SIZE[1] / self.CHUNK[1]))
+        ]
         self.objects = []
 
-    def __initShape(self, shape) :
-        _object = Objects(self.pg, self.screen, shape, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), self.CHUNK)
 
-        return _object
+    def __drawBlock(self, x, y, w, h, color) :
+        self.pg.draw.rect(
+            self.screen,
+            color,
+            (x, y, w, h)
+        )
 
-    def __drawShape(self, _object) :
-        is_move = _object.checkCrash()
-        _object.draw()
+    def __drawMap(self) :
+        for j, line in enumerate(self.map) :
+            for i, block in enumerate(line) :
+                if block == self.SHAPE1_INT :
+                    self.__drawBlock(i * self.CHUNK[0], j * self.CHUNK[1], self.CHUNK[0], self.CHUNK[1], self.SHAPE1_COLOR)
 
-        return is_move
+                elif block == self.SHAPE2_INT :
+                    self.__drawBlock(i * self.CHUNK[0], j * self.CHUNK[1], self.CHUNK[0], self.CHUNK[1], self.SHAPE2_COLOR)
+
+    def __checkFullLine(self) :
+        for j, line in enumerate(self.map) :
+            for i, block in enumerate(line) :
+                if block == 0 :
+                    break
+
+                elif i == len(line) - 1 :
+                    del self.map[j]
+                    self.map.insert(0, [0 for _ in range(len(line))])
+
+        return True
 
     def show(self) :
         self.pg.init()
@@ -44,16 +69,23 @@ class Tetris :
         self.screen = self.pg.display.set_mode(self.SIZE)
         self.clock = self.pg.time.Clock()
 
-        shape = random.choice(
-            [
-                self.SHAPE1,
-                self.SHAPE2
-            ]
-        )
+        # pre work
+        self.screen.fill(self.BC)
 
         # set objects
-        self.objects.append(self.__initShape(shape))
-        index_now = len(self.objects) - 1
+        random_state = random.randint(0, 1)
+
+        self.objects.append(
+            Objects(
+                self.pg, 
+                self.screen, 
+                self.map, 
+                self.SHAPE1 if random_state == 0 else self.SHAPE2 , 
+                self.SHAPE1_INT if random_state == 0 else self.SHAPE2_INT ,
+                self.SHAPE1_COLOR if random_state == 0 else self.SHAPE2_COLOR ,
+                self.CHUNK
+            )
+        )
 
         while True :
             self.screen.fill(self.BC)
@@ -63,17 +95,16 @@ class Tetris :
                     sys.exit(0)
 
                 elif event.type == self.pg.KEYUP :
-                    if event.key == self.pg.K_RIGHT :
-                        self.objects[index_now].moveSide(self.CHUNK[0])
+                    if event.key == self.pg.K_LEFT :
+                        self.objects[-1].moveX(-1)
 
-                    elif event.key == self.pg.K_LEFT :
-                        self.objects[index_now].moveSide(-self.CHUNK[0])
+                    elif event.key == self.pg.K_RIGHT :
+                        self.objects[-1].moveX(1)
 
             # someting will be in here
-            for i in range(index_now) :
-               self.__drawShape(self.objects[i]) 
-
-            if self.__drawShape(self.objects[index_now]) :
+            self.__drawMap()
+            
+            if not self.objects[-1].draw() and self.__checkFullLine() :
                 break
 
             self.pg.display.flip()
@@ -82,7 +113,7 @@ class Tetris :
         self.show()
 
 tetris = Tetris(
-    (400, 400)
+    (200, 600)
 )
 tetris.show()
         

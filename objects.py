@@ -1,10 +1,12 @@
 
 import numpy as np
+import time
 
 class Objects :
-    def __init__(self, pg, screen, shape, color, chunk) :
+    def __init__(self, pg, screen, _map, shape, shape_int, shape_color, chunk) :
         self.SHAPE = np.array(shape)
-        self.COLOR = color
+        self.SHAPE_INT = shape_int
+        self.SHAPE_COLOR = shape_color
         self.CHUNK = chunk
         self.IS_MOVE = True
 
@@ -12,50 +14,45 @@ class Objects :
         self.y = 0
         self.pg = pg
         self.screen = screen
+        self.map = _map
 
-    def checkCrash(self) :
-        for i in range(self.x, self.x + len(self.SHAPE[0]) * self.CHUNK[0], self.CHUNK[0]) :
-            for j in range(self.y, self.y + len(self.SHAPE) * self.CHUNK[1], self.CHUNK[1]) :
-                try :
-                    if self.y + self.CHUNK[1] >= self.screen.get_height() :
+    def __init(self) :
+        for j, line in enumerate(self.SHAPE) :
+            for i, block in enumerate(line) :
+                if self.y + j <= len(self.map) - 1 : 
+                    self.map[self.y + j][self.x + i] = 0
+
+    def __draw(self) :
+        for j, line in enumerate(self.SHAPE) :
+            for i, block in enumerate(line) :
+                if block == 0 :
+                    if self.y + j >= len(self.map) :
                         self.IS_MOVE = False
 
-                        return True
+                    elif self.map[self.y + j][self.x + i] != 0 :
+                        self.IS_MOVE = False
 
-                    if self.SHAPE[int((j - self.y) / self.CHUNK[1])][int((i - self.x) / self.CHUNK[0])] == 0 :
-                        if tuple(self.screen.get_at((int(i + 1), int(j + 1))))[:-1] != (255, 255, 255)  :
-                            self.IS_MOVE = False
-                            
-                            return True
+                    else : 
+                        self.map[self.y + j][self.x + i] = block
 
-                except :
-                    self.IS_MOVE = False
+                else :
+                    self.map[self.y + j][self.x + i] = block
 
-                    return True
-
-        return False
-
-    def moveSide(self, value) :
-        if self.IS_MOVE and self.x + self.CHUNK[0] * len(self.SHAPE[0]) <= self.screen.get_width() and self.x >= 0 :
+    def moveX(self, value) :
+        if self.IS_MOVE :
+            self.__init()
             self.x += value
+        
+        self.__draw()
+
+    def moveY(self, value) :
+        if self.IS_MOVE :
+            self.__init()
+            self.y += value
+
+        self.__draw()
 
     def draw(self) :
-        x = self.x
-        y = self.y
+        self.moveY(1)
 
-        for line in self.SHAPE :
-            for block in line :
-                if block == 1 :
-                    self.pg.draw.rect(
-                        self.screen,
-                        self.COLOR,
-                        (x, y, self.CHUNK[0], self.CHUNK[1])
-                    )
-
-                x += self.CHUNK[0]
-            
-            x = self.x
-            y += self.CHUNK[1]
-
-        if self.IS_MOVE :
-            self.y += 2
+        return self.IS_MOVE
